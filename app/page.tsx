@@ -11,16 +11,21 @@ export default function Home() {
   
  
   return (
-    <main className="min-h-screen flex flex-col items-center">
+      <main
+    className="min-h-screen flex flex-col items-center"
+   style={{ // inline
+    backgroundImage: "linear-gradient(to right , #000000ff, #31044bff)"
+  }}
+  >
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
         </nav>
-          <Link href = "/recipe" ><Button> + Add Recipe!</Button></Link>
+          <Link href = "/recipe"  ><Button variant="customBlack"> + Add Recipe!</Button></Link>
          
-     
+
       </div>
     </main>
   );
