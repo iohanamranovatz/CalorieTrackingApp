@@ -10,10 +10,10 @@ export async function GET() {
   }
 
   const { data, error } = await supabase
-    .from("recipes")
+    .from("profiles")
     .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .eq("id", user.id)
+    .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -22,7 +22,7 @@ export async function GET() {
   return NextResponse.json(data);
 }
 
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -31,19 +31,19 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
+  const updates: Record<string, string | number> = { updated_at: new Date().toISOString() };
+
+  if (body.daily_calorie_goal !== undefined) {
+    updates.daily_calorie_goal = body.daily_calorie_goal;
+  }
+  if (body.display_name !== undefined) {
+    updates.display_name = body.display_name;
+  }
+
   const { data, error } = await supabase
-    .from("recipes")
-    .insert({
-      user_id: user.id,
-      name: body.name,
-      raw_input: body.raw_input,
-      total_weight_grams: body.total_weight_grams,
-      calories_per_100g: body.calories_per_100g,
-      protein_per_100g: body.protein_per_100g,
-      carbs_per_100g: body.carbs_per_100g,
-      fat_per_100g: body.fat_per_100g,
-      ingredients: body.ingredients,
-    })
+    .from("profiles")
+    .update(updates)
+    .eq("id", user.id)
     .select()
     .single();
 

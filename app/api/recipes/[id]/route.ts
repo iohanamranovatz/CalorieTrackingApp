@@ -1,7 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -12,17 +16,21 @@ export async function GET() {
   const { data, error } = await supabase
     .from("recipes")
     .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .eq("id", id)
+    .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 404 });
   }
 
   return NextResponse.json(data);
 }
 
-export async function POST(request: NextRequest) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -30,26 +38,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("recipes")
-    .insert({
-      user_id: user.id,
-      name: body.name,
-      raw_input: body.raw_input,
-      total_weight_grams: body.total_weight_grams,
-      calories_per_100g: body.calories_per_100g,
-      protein_per_100g: body.protein_per_100g,
-      carbs_per_100g: body.carbs_per_100g,
-      fat_per_100g: body.fat_per_100g,
-      ingredients: body.ingredients,
-    })
-    .select()
-    .single();
+    .delete()
+    .eq("id", id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  return NextResponse.json({ success: true });
 }
